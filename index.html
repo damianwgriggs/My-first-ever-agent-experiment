@@ -655,7 +655,7 @@
                         {error && <div style={{ textAlign: 'center', color: 'red', padding: '2rem' }}>{error}</div>}
 
                         {!error && (
-                            <>
+                            <React.Fragment>
                                 <div className="grid">
                                     {movies.map(movie => (
                                         <MovieCard key={movie.id} movie={movie} onSelect={handleSelectMovie} />
@@ -669,7 +669,7 @@
                                         </button>
                                     </div>
                                 )}
-                            </>
+                            </React.Fragment>
                         )}
 
                         {selectedMovie && (
