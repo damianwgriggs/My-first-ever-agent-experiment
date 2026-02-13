@@ -4,23 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Finder</title>
-    <!-- React & ReactDOM (Production for stability) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel (for JSX) -->
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <!-- Ethers.js (Optional/Future proofing) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <title>Movie Finder (Stable)</title>
+    <!-- Preact & htm (Native ESM, no Babel needed) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
 
     <!-- Load Local Config -->
     <script src="config.js"></script>
 
     <style>
-        /* Styles from index.css */
         :root {
             --primary-color: #e50914;
-            /* Netflix Red-ish */
             --secondary-color: #ffffff;
             --background-color: #141414;
             --text-color: #e5e5e5;
@@ -44,7 +37,6 @@
             min-height: 100vh;
         }
 
-        /* Header */
         header {
             padding: 1rem 2rem;
             display: flex;
@@ -66,7 +58,6 @@
             letter-spacing: 2px;
         }
 
-        /* Utilities */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -80,7 +71,6 @@
             gap: 2rem;
         }
 
-        /* Movie Card */
         .movie-card {
             background-color: var(--card-bg);
             border-radius: 8px;
@@ -124,7 +114,6 @@
             gap: 0.25rem;
         }
 
-        /* Search Bar */
         .search-container {
             display: flex;
             justify-content: center;
@@ -149,7 +138,6 @@
             box-shadow: 0 0 0 2px var(--primary-color);
         }
 
-        /* Button */
         .btn {
             padding: 0.5rem 1rem;
             background-color: var(--primary-color);
@@ -165,7 +153,6 @@
             background-color: #b20710;
         }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -178,7 +165,6 @@
             align-items: center;
             z-index: 1000;
             padding: 1rem;
-            animation: fadeIn 0.3s ease;
         }
 
         .modal-content {
@@ -190,7 +176,6 @@
             overflow-y: auto;
             position: relative;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            animation: scaleUp 0.3s ease;
         }
 
         .close-btn {
@@ -240,29 +225,6 @@
             font-size: 1.1rem;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes scaleUp {
-            from {
-                transform: scale(0.9);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* Wallet Gateway Styles (embedded directly since they weren't in index.css but likely inline or missing) */
         .gateway-container {
             display: flex;
             justify-content: center;
@@ -314,393 +276,182 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        // --- REACT & HELPERS ---
-        const { useState, useEffect } = React;
+    <script type="module">
+        import { h, render } from 'https://esm.sh/preact';
+        import { useState, useEffect } from 'https://esm.sh/preact/hooks';
+        import htm from 'https://esm.sh/htm';
+
+        const html = htm.bind(h);
 
         // --- CONFIGURATION ---
-        // Attempts to read from config.js (window.env), falls back to empty string
         const API_KEY = (window.env && window.env.API_KEY) ? window.env.API_KEY : "";
+        const BASE_URL = 'https://api.themoviedb.org/3';
 
         // --- MOCK DATA ---
         const mockMovies = [
             {
                 id: 1,
                 title: "Inception",
-                overview: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: \"inception\", the implantation of another person's idea into a target's subconscious.",
-                poster_path: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-                backdrop_path: "https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+                overview: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets.",
+                poster_path: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
                 vote_average: 8.8,
                 release_date: "2010-07-15"
             },
             {
                 id: 2,
                 title: "The Dark Knight",
-                overview: "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets. The partnership proves to be effective, but they soon find themselves prey to a reign of chaos unleashed by a rising criminal mastermind known to the terrified citizens of Gotham as the Joker.",
-                poster_path: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-                backdrop_path: "https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg",
+                overview: "Batman raises the stakes in his war on crime.",
+                poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
                 vote_average: 8.5,
                 release_date: "2008-07-14"
-            },
-            {
-                id: 3,
-                title: "Interstellar",
-                overview: "The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel and conquer the vast distances involved in an interstellar voyage.",
-                poster_path: "https://image.tmdb.org/t/p/w500/gEU2QniL6E8AHtMY4kRFWJOatf.jpg",
-                backdrop_path: "https://image.tmdb.org/t/p/original/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg",
-                vote_average: 8.4,
-                release_date: "2014-11-05"
-            },
-            {
-                id: 4,
-                title: "Parasite",
-                overview: "All unemployed, Ki-taek's family takes peculiar interest in the wealthy and glamorous Parks for their livelihood until they get entangled in an unexpected incident.",
-                poster_path: "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
-                backdrop_path: "https://image.tmdb.org/t/p/original/tuw475JIsLhAbbh3p60qae6b12.jpg",
-                vote_average: 8.5,
-                release_date: "2019-05-30"
-            },
-            {
-                id: 5,
-                title: "Everything Everywhere All At Once",
-                overview: "An aging Chinese immigrant is swept up in an insane adventure, where she alone can save what's important to her by connecting with the lives she could have led in other universes.",
-                poster_path: "https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg",
-                backdrop_path: "https://image.tmdb.org/t/p/original/cT8hS94aPbqC8YX193XF19C8d11.jpg",
-                vote_average: 8.0,
-                release_date: "2022-03-24"
-            },
-            {
-                id: 6,
-                title: "Dune: Part Two",
-                overview: "Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the known universe, Paul endeavors to prevent a terrible future only he can foresee.",
-                poster_path: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
-                backdrop_path: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
-                vote_average: 8.2,
-                release_date: "2024-02-27"
             }
         ];
 
         // --- API FUNCTIONS ---
-        const BASE_URL = 'https://api.themoviedb.org/3';
-
         const getPopularMovies = async (page = 1) => {
-            if (!API_KEY) {
-                console.warn("No API Key found. Using mock data.");
-                return Promise.resolve(mockMovies);
-            }
-
+            if (!API_KEY) return mockMovies;
             try {
                 const response = await fetch(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`);
-                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
-                return data.results;
-            } catch (error) {
-                console.error("API Call failed. Using mock data.", error);
-                return Promise.resolve(mockMovies);
-            }
+                return data.results || mockMovies;
+            } catch { return mockMovies; }
         };
 
         const searchMovies = async (query, page = 1) => {
-            if (!API_KEY) {
-                console.warn("No API Key found. performing mock search.");
-                return Promise.resolve(
-                    mockMovies.filter(movie =>
-                        movie.title.toLowerCase().includes(query.toLowerCase())
-                    )
-                );
-            }
-
+            if (!API_KEY) return mockMovies.filter(m => m.title.toLowerCase().includes(query.toLowerCase()));
             try {
-                const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}&include_adult=false`);
-                if (!response.ok) throw new Error('Network response was not ok');
+                const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`);
                 const data = await response.json();
-                return data.results;
-            } catch (error) {
-                console.error("API Search failed. Using mock data.", error);
-                return Promise.resolve([]);
-            }
+                return data.results || [];
+            } catch { return []; }
         };
-
-        const getMovieDetails = async (id) => {
-            if (!API_KEY) {
-                return Promise.resolve(mockMovies.find(m => m.id === parseInt(id)));
-            }
-            try {
-                const response = await fetch(`${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error("API Details failed. Using mock data.", error);
-                return Promise.resolve(mockMovies.find(m => m.id === parseInt(id)));
-            }
-        }
 
         // --- COMPONENTS ---
-
-        // MovieCard
         const MovieCard = ({ movie, onSelect }) => {
-            const imageUrl = movie.poster_path
-                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                : 'https://via.placeholder.com/500x750?text=No+Image';
-
-            return (
-                <div className="movie-card" onClick={() => onSelect(movie)}>
-                    <img src={imageUrl} alt={movie.title} className="movie-poster" />
-                    <div className="movie-info">
-                        <h3 className="movie-title">{movie.title}</h3>
-                        <span className="movie-rating">⭐ {movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
+            const imageUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
+            return html`
+                <div class="movie-card" onClick=${() => onSelect(movie)}>
+                    <img src=${imageUrl} alt=${movie.title} class="movie-poster" />
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <span class="movie-rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
                     </div>
                 </div>
-            );
+            `;
         };
 
-        // SearchBar
         const SearchBar = ({ onSearch }) => {
             const [query, setQuery] = useState('');
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onSearch(query);
-            };
-
-            return (
-                <form className="search-container" onSubmit={handleSubmit}>
-                    <input
-                        type="text"
-                        className="search-input"
-                        placeholder="Search for movies..."
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
+            const handleSubmit = (e) => { e.preventDefault(); onSearch(query); };
+            return html`
+                <form class="search-container" onSubmit=${handleSubmit}>
+                    <input type="text" class="search-input" placeholder="Search for movies..." value=${query} onInput=${(e) => setQuery(e.target.value)} />
                 </form>
-            );
+            `;
         };
 
-        // WalletGateway
         const WalletGateway = ({ onConnect }) => {
             const [error, setError] = useState('');
-            const [isConnecting, setIsConnecting] = useState(false);
-
             const connectWallet = async () => {
-                setIsConnecting(true);
-                setError('');
-
                 if (typeof window.ethereum !== 'undefined') {
                     try {
                         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                        if (accounts.length > 0) {
-                            onConnect(accounts[0]);
-                        } else {
-                            setError('No accounts found. Please unlock MetaMask.');
-                        }
-                    } catch (err) {
-                        if (err.code === 4001) {
-                            setError('Connection rejected by user.');
-                        } else {
-                            setError('Failed to connect. Please try again.');
-                            console.error(err);
-                        }
-                    }
-                } else {
-                    setError('MetaMask not detected! Please install the extension.');
-                }
-                setIsConnecting(false);
+                        if (accounts.length > 0) onConnect(accounts[0]);
+                    } catch { setError('Connection failed.'); }
+                } else { setError('MetaMask not detected!'); }
             };
-
-            return (
-                <div className="gateway-container">
-                    <div className="gateway-card">
+            return html`
+                <div class="gateway-container">
+                    <div class="gateway-card">
                         <h2>🔒 Access Restricted</h2>
-                        <p>Please connect your Ethereum wallet (MetaMask) to verify you are human and access the Movie Finder.</p>
-
-                        {error && <div className="error-message">{error}</div>}
-
-                        <button
-                            className="btn connect-btn"
-                            onClick={connectWallet}
-                            disabled={isConnecting}
-                        >
-                            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-                        </button>
-
-                        {typeof window.ethereum === 'undefined' && (
-                            <p className="install-link">
-                                <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">
-                                    Install MetaMask
-                                </a>
-                            </p>
-                        )}
+                        <p>Please connect your Ethereum wallet to access the Movie Finder.</p>
+                        ${error && html`<div class="error-message">${error}</div>`}
+                        <button class="btn connect-btn" onClick=${connectWallet}>Connect Wallet</button>
                     </div>
                 </div>
-            );
+            `;
         };
 
-        // --- MAIN APP COMPONENT ---
         function App() {
             const [userAccount, setUserAccount] = useState(null);
             const [movies, setMovies] = useState([]);
             const [selectedMovie, setSelectedMovie] = useState(null);
             const [loading, setLoading] = useState(true);
-            const [error, setError] = useState(null);
             const [page, setPage] = useState(1);
             const [searchQuery, setSearchQuery] = useState('');
 
-            // Check if already connected
             useEffect(() => {
                 if (typeof window.ethereum !== 'undefined') {
-                    window.ethereum.request({ method: 'eth_accounts' })
-                        .then(accounts => {
-                            if (accounts.length > 0) {
-                                setUserAccount(accounts[0]);
-                            }
-                        })
-                        .catch(console.error);
-
-                    // Listen for account changes
-                    window.ethereum.on('accountsChanged', (accounts) => {
-                        if (accounts.length > 0) {
-                            setUserAccount(accounts[0]);
-                        } else {
-                            setUserAccount(null);
-                        }
-                    });
+                    window.ethereum.request({ method: 'eth_accounts' }).then(accs => accs[0] && setUserAccount(accs[0]));
                 }
             }, []);
 
-            useEffect(() => {
-                if (userAccount) {
-                    loadPopularMovies();
-                }
-            }, [userAccount]);
+            useEffect(() => { if (userAccount) loadMovies(); }, [userAccount]);
 
-            const loadPopularMovies = async (pageToLoad = 1) => {
+            const loadMovies = async (pageToLoad = 1) => {
                 setLoading(true);
-                try {
-                    const results = await getPopularMovies(pageToLoad);
-                    if (pageToLoad === 1) {
-                        setMovies(results);
-                    } else {
-                        setMovies(prev => [...prev, ...results]);
-                    }
-                } catch (err) {
-                    setError("Failed to load movies.");
-                } finally {
-                    setLoading(false);
-                }
+                const results = await getPopularMovies(pageToLoad);
+                setMovies(pageToLoad === 1 ? results : [...movies, ...results]);
+                setLoading(false);
             };
 
             const handleSearch = async (query) => {
                 setSearchQuery(query);
                 setPage(1);
                 setLoading(true);
-                try {
-                    if (!query.trim()) {
-                        await loadPopularMovies(1);
-                    } else {
-                        const results = await searchMovies(query, 1);
-                        setMovies(results);
-                    }
-                } catch (err) {
-                    setError("Search failed.");
-                } finally {
-                    setLoading(false);
-                }
+                const results = query.trim() ? await searchMovies(query, 1) : await getPopularMovies(1);
+                setMovies(results);
+                setLoading(false);
             };
 
             const loadMore = async () => {
                 const nextPage = page + 1;
                 setPage(nextPage);
-
-                if (searchQuery.trim()) {
-                    setLoading(true);
-                    try {
-                        const results = await searchMovies(searchQuery, nextPage);
-                        setMovies(prev => [...prev, ...results]);
-                    } catch (err) {
-                        setError("Failed to load more movies.");
-                    } finally {
-                        setLoading(false);
-                    }
-                } else {
-                    await loadPopularMovies(nextPage);
-                }
+                setLoading(true);
+                const results = searchQuery.trim() ? await searchMovies(searchQuery, nextPage) : await getPopularMovies(nextPage);
+                setMovies([...movies, ...results]);
+                setLoading(false);
             };
 
-            const handleSelectMovie = (movie) => {
-                setSelectedMovie(movie);
-            };
+            if (!userAccount) return html`<${WalletGateway} onConnect=${setUserAccount} />`;
 
-            const closeDetails = () => {
-                setSelectedMovie(null);
-            };
-
-            if (!userAccount) {
-                return <WalletGateway onConnect={setUserAccount} />;
-            }
-
-            return (
-                <div className="app">
+            return html`
+                <div class="app">
                     <header>
                         <h1>Movie Finder</h1>
-                        <div style={{ fontSize: '0.8rem', color: '#888' }}>
-                            Connected: {userAccount.slice(0, 6)}...{userAccount.slice(-4)}
-                        </div>
+                        <div style="font-size: 0.8rem; color: #888">Connected: ${userAccount.slice(0, 6)}...${userAccount.slice(-4)}</div>
                     </header>
-
-                    <main className="container">
-                        <SearchBar onSearch={handleSearch} />
-
-                        {loading && page === 1 && <div style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>}
-                        {error && <div style={{ textAlign: 'center', color: 'red', padding: '2rem' }}>{error}</div>}
-
-                        {!error && (
-                            <React.Fragment>
-                                <div className="grid">
-                                    {movies.map(movie => (
-                                        <MovieCard key={movie.id} movie={movie} onSelect={handleSelectMovie} />
-                                    ))}
-                                </div>
-
-                                {movies.length > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', paddingBottom: '2rem' }}>
-                                        <button className="btn" onClick={loadMore} disabled={loading}>
-                                            {loading ? 'Loading...' : 'Load More Movies'}
-                                        </button>
-                                    </div>
-                                )}
-                            </React.Fragment>
-                        )}
-
-                        {selectedMovie && (
-                            <div className="modal-overlay" onClick={closeDetails}>
-                                <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                    <button className="close-btn" onClick={closeDetails}>&times;</button>
-                                    <div className="modal-body">
-                                        <img
-                                            src={selectedMovie.poster_path ? `https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}` : 'https://via.placeholder.com/500x750'}
-                                            alt={selectedMovie.title}
-                                            className="modal-poster"
-                                        />
-                                        <div className="modal-details">
-                                            <h2>{selectedMovie.title}</h2>
-                                            <p className="modal-meta">
-                                                <span>{selectedMovie.release_date?.split('-')[0]}</span>
-                                                <span>⭐ {selectedMovie.vote_average?.toFixed(1)}</span>
-                                            </p>
-                                            <p className="modal-overview">{selectedMovie.overview}</p>
-                                        </div>
+                    <main class="container">
+                        <${SearchBar} onSearch=${handleSearch} />
+                        <div class="grid">
+                            ${movies.map(m => html`<${MovieCard} key=${m.id} movie=${m} onSelect=${setSelectedMovie} />`)}
+                        </div>
+                        ${movies.length > 0 && html`
+                            <div style="display: flex; justify-content: center; margin-top: 2rem;">
+                                <button class="btn" onClick=${loadMore} disabled=${loading}>${loading ? 'Loading...' : 'Load More'}</button>
+                            </div>
+                        `}
+                    </main>
+                    ${selectedMovie && html`
+                        <div class="modal-overlay" onClick=${() => setSelectedMovie(null)}>
+                            <div class="modal-content" onClick=${e => e.stopPropagation()}>
+                                <button class="close-btn" onClick=${() => setSelectedMovie(null)}>&times;</button>
+                                <div class="modal-body">
+                                    <img src=${selectedMovie.poster_path ? 'https://image.tmdb.org/t/p/w500' + selectedMovie.poster_path : ''} class="modal-poster" />
+                                    <div class="modal-details">
+                                        <h2>${selectedMovie.title}</h2>
+                                        <p class="modal-meta"><span>${selectedMovie.release_date}</span> <span>⭐ ${selectedMovie.vote_average}</span></p>
+                                        <p class="modal-overview">${selectedMovie.overview}</p>
                                     </div>
                                 </div>
                             </div>
-                        )}
-                    </main>
+                        </div>
+                    `}
                 </div>
-            );
+            `;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        render(html`<${App} />`, document.getElementById('root'));
     </script>
 </body>
 
